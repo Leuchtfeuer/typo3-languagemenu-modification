@@ -1,6 +1,6 @@
 {
     "name": "bitmotion/languagemod",
-    "description": "Bitmotion Site Distribution",
+    "description": "Disables languages in HMENU when there is no translated record for given detail page.",
     "type": "typo3-cms-extension",
     "license": "GPL-2.0-or-later",
     "authors": [

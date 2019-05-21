@@ -44,8 +44,8 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
                 $pages = $this->pages ?? $this->getPages($config);
 
                 if (empty($pages) || in_array($GLOBALS['TSFE']->id, $pages)) {
-                    $params = $this->params ?? $this->getParameters($config);
                     $queryParams = $this->queryParams ?? $this->getQueryParams();
+                    $params = $this->params ?? $this->getParameters($config);
 
                     if ($this->requestHasParam($queryParams, $params) && !$this->translationExist($lUid)) {
                         $lUid = 0;
@@ -86,31 +86,15 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
     {
         $parameters = [];
 
-        foreach ($config['params.'] as $param) {
-            if (isset($param['name']) && !empty($param['name'])) {
-                if (strpos($param['name'], '.') !== false) {
-                    $getVars = explode('.', $param['name']);
-                    $this->tableName = $param['table'];
-                    $parameters[] = $this->enrichParameters($getVars);
-                }
-            }
+        foreach ($config['params.'] as $tableName => $param) {
+            $getVars = explode('.', $param);
+            $parameters[] = [
+                'tableName' => $tableName,
+                'getVars' => array_combine($getVars, $getVars),
+            ];
         }
 
         $this->params = $parameters;
-
-        return $parameters;
-    }
-
-    protected function enrichParameters(array $getVars = [], array &$parameters = []): array
-    {
-        if (is_array($getVars)) {
-            $key = array_shift($getVars);
-            $parameters[$key] = [];
-
-            if (!empty($getVars)) {
-                $this->enrichParameters($getVars, $parameters[$key]);
-            }
-        }
 
         return $parameters;
     }
@@ -129,18 +113,28 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
     protected function requestHasParam(array $queryParameters, array $parameters): bool
     {
-        foreach ($parameters as $parameter) {
-            if (!empty($parameter)) {
-                $key = array_shift(array_keys($parameter));
-                if (isset($queryParameters[$key])) {
-                    if (is_array($queryParameters[$key]) && !empty($parameter[$key])) {
-                        return $this->requestHasParam($queryParameters[$key], [$parameter[$key]]);
+        foreach ($parameters as $key => $parameter) {
+            if (isset($parameter['getVars']) && !empty($parameter['getVars'])) {
+                $getVars = $parameter['getVars'];
+                $value = 0;
+                $paramsToIterate = $queryParameters;
+
+                foreach ($getVars as $getVar) {
+                    if (!isset($paramsToIterate[$getVar])) {
+                        continue 2;
                     }
 
-                    $this->value = (int)$queryParameters[$key];
-
-                    return true;
+                    if (is_array($paramsToIterate[$getVar])) {
+                        $paramsToIterate = $paramsToIterate[$getVar];
+                    } else {
+                        $value = (int)$paramsToIterate[$getVar];
+                    }
                 }
+
+                $this->value = $value;
+                $this->tableName = $parameter['tableName'];
+
+                return true;
             }
         }
 

@@ -8,16 +8,8 @@ config.tx_languagemod {
     pages = 44,141,142,146
 
     params {
-        10 {
-            # name of the get variable. For example: tx_news_pi1[news]
-            name = tx_news_pi1.news
-            # associated table name
-            table = tx_news_domain_model_news
-        }
-
-        20 {
-            name = tx_myext_myplugin.foo
-            table = tx_myext_domain_model_foo
-        }
+        # table name = name of the get variable. For example: tx_news_pi1[news]
+        tx_news_domain_model_news = tx_news_pi1.news
+        tx_myext_domain_model_foo = tx_myext_myplugin.foo
     }
 }
