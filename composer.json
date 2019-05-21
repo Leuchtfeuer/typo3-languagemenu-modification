@@ -1,0 +1,30 @@
+{
+    "name": "bitmotion/languagemod",
+    "description": "Bitmotion Site Distribution",
+    "type": "typo3-cms-extension",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Florian Wessels",
+            "email": "typo3-ext@bitmotion.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "typo3/cms-core": "^8.7 || ^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bitmotion\\Languagemod\\": "Classes/"
+        }
+    },
+    "replace": {
+        "bitmotion/languagemod": "self.version",
+        "typo3-ter/languagemod": "self.version"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "languagemod"
+        }
+    }
+}

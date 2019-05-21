@@ -1,0 +1,23 @@
+# This is an example configuration
+config.tx_languagemod {
+
+    # language uids the modification should handle
+    languages = 1,2,3,4
+
+    # page uids the modification should handle
+    pages = 44,141,142,146
+
+    params {
+        10 {
+            # name of the get variable. For example: tx_news_pi1[news]
+            name = tx_news_pi1.news
+            # associated table name
+            table = tx_news_domain_model_news
+        }
+
+        20 {
+            name = tx_myext_myplugin.foo
+            table = tx_myext_domain_model_foo
+        }
+    }
+}
