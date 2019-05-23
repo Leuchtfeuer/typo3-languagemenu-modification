@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Bitmotion\Languagemod\Hooks;
 
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
@@ -32,6 +33,8 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
     protected $pages;
 
+    protected $translationChecked = false;
+
     public function getPageOverlay_preProcess(&$pageInput, &$lUid, PageRepository $parent)
     {
         $this->initialize();
@@ -39,6 +42,11 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         if (!empty($this->setup) && isset($this->setup['config.']['tx_languagemod.']) && !empty($this->setup['config.']['tx_languagemod.'])) {
             $config = $this->setup['config.']['tx_languagemod.'];
             $languages = $this->languages ?? $this->getLanguages($config);
+
+            // Skip when we are in current language and we already checked whether given record is a translation
+            if ($lUid === $GLOBALS['TSFE']->sys_language_uid && $this->translationChecked === true) {
+                return;
+            }
 
             if (in_array($lUid, $languages)) {
                 $pages = $this->pages ?? $this->getPages($config);
@@ -143,6 +151,10 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
     protected function translationExist(int $languageUid): bool
     {
+        if (!$this->isTranslatedRecord($languageUid)) {
+            return true;
+        }
+
         $transOrigPointerField = $GLOBALS['TCA'][$this->tableName]['ctrl']['transOrigPointerField'];
         $languageField = $GLOBALS['TCA'][$this->tableName]['ctrl']['languageField'];
 
@@ -164,8 +176,7 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
                 break;
             default:
                 // WHERE sys_language_uid = 1 AND l10n_source = 1000
-                $queryBuilder
-                    ->andWhere($queryBuilder->expr()->eq($transOrigPointerField, $queryBuilder->createNamedParameter($this->value, \PDO::PARAM_INT)));
+                $queryBuilder->andWhere($queryBuilder->expr()->eq($transOrigPointerField, $queryBuilder->createNamedParameter($this->value, \PDO::PARAM_INT)));
         }
 
         return !empty($queryBuilder->execute()->fetchAll());
@@ -212,5 +223,19 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
             ->setMaxResults(1)
             ->execute()
             ->fetchColumn(0);
+    }
+
+    protected function isTranslatedRecord(int $languageUid)
+    {
+        $record = BackendUtility::getRecord($this->tableName, $this->value);
+        $this->translationChecked = true;
+
+        if ($record !== null && isset($record['sys_language_uid']) && (int)$record['sys_language_uid'] === $languageUid) {
+            $GLOBALS['TSFE']->page['l18n_cfg'] == 0 ? $GLOBALS['TSFE']->page['l18n_cfg'] = 1 : $GLOBALS['TSFE']->page['l18n_cfg'] = 3;
+
+            return false;
+        }
+
+        return true;
     }
 }
