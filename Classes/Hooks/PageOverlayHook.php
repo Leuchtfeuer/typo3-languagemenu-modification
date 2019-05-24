@@ -225,12 +225,25 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
             ->fetchColumn(0);
     }
 
-    protected function isTranslatedRecord(int $languageUid)
+    protected function isTranslatedRecord(int $languageUid): bool
     {
         $record = BackendUtility::getRecord($this->tableName, $this->value);
         $this->translationChecked = true;
 
+        if ($record !== null && is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['pageOverlayRecordIsTranslated'])) {
+            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['pageOverlayRecordIsTranslated'] as $classRef) {
+                $hookObject = GeneralUtility::getUserObj($classRef);
+
+                if (!$hookObject instanceof PageOverlayRecordIsTranslatedInterface) {
+                    throw new \UnexpectedValueException($classRef . ' must implement interface ' . PageOverlayRecordIsTranslatedInterface::class, 1558689867);
+                }
+
+                $hookObject->isTranslatedRecord($record, $languageUid, $this);
+            }
+        }
+
         if ($record !== null && isset($record['sys_language_uid']) && (int)$record['sys_language_uid'] === $languageUid) {
+            // Hide page in default language
             $GLOBALS['TSFE']->page['l18n_cfg'] == 0 ? $GLOBALS['TSFE']->page['l18n_cfg'] = 1 : $GLOBALS['TSFE']->page['l18n_cfg'] = 3;
 
             return false;
