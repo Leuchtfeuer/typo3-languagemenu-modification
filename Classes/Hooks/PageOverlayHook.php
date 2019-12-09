@@ -77,10 +77,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         }
     }
 
-    /**
-     * @param array $config
-     * @return array
-     */
     protected function getLanguages(array $config): array
     {
         $this->languages = GeneralUtility::trimExplode(',', $config['languages']);
@@ -88,10 +84,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $this->languages;
     }
 
-    /**
-     * @param array $config
-     * @return array
-     */
     protected function getPages(array $config): array
     {
         $this->pages = GeneralUtility::trimExplode(',', $config['pages']);
@@ -99,10 +91,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $this->pages;
     }
 
-    /**
-     * @param array $config
-     * @return array
-     */
     protected function getParameters(array $config): array
     {
         $parameters = [];
@@ -120,9 +108,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $parameters;
     }
 
-    /**
-     * @return array
-     */
     protected function getQueryParams(): array
     {
         if ($GLOBALS['TYPO3_REQUEST'] !== null) {
@@ -135,11 +120,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $this->queryParams;
     }
 
-    /**
-     * @param array $queryParameters
-     * @param array $parameters
-     * @return bool
-     */
     protected function requestHasParam(array $queryParameters, array $parameters): bool
     {
         foreach ($parameters as $key => $parameter) {
@@ -170,10 +150,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return false;
     }
 
-    /**
-     * @param int $languageUid
-     * @return bool
-     */
     protected function translationExist(int $languageUid): bool
     {
         if (!$this->isTranslatedRecord($languageUid)) {
@@ -184,7 +160,7 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         $languageField = $GLOBALS['TCA'][$this->tableName]['ctrl']['languageField'];
 
         /**
-         * @var QueryBuilder $queryBuilder
+         * @var QueryBuilder
          */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
         $queryBuilder->select('*')->from($this->tableName)->setMaxResults(1);
@@ -211,14 +187,11 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return !empty($queryBuilder->execute()->fetchAll());
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     */
     protected function applyAdminPanelConfiguration(QueryBuilder &$queryBuilder)
     {
         try {
             /**
-             * @var UserAspect $userAspect
+             * @var UserAspect
              */
             $userAspect = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Context\\Context')->getAspect('backend.user');
         } catch (\Exception $exception) {
@@ -242,16 +215,10 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         }
     }
 
-    /**
-     * @param string $pointerField
-     * @param string $languageField
-     * @param int $languageUid
-     * @return int
-     */
     protected function getTranslationPointer(string $pointerField, string $languageField, int $languageUid): int
     {
         /**
-         * @var QueryBuilder $queryBuilder
+         * @var QueryBuilder
          */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
 
@@ -269,10 +236,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
             ->fetchColumn(0);
     }
 
-    /**
-     * @param int $languageUid
-     * @return bool
-     */
     protected function isTranslatedRecord(int $languageUid): bool
     {
         $record = BackendUtility::getRecord($this->tableName, $this->value);
