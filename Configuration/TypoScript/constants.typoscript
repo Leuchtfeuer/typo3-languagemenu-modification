@@ -1,0 +1,7 @@
+config.tx_languagemod {
+    # language uids the modification should handle
+    languages = 1,2,3,4
+
+    # page uids the modification should handle
+    pages = 44,141,142,146
+}
