@@ -1,6 +1,6 @@
 <?php
 $EM_CONF['languagemod'] = [
-    'title' => 'Language modification',
+    'title' => 'Language Modification',
     'description' => 'Modifies language menu entries and hreflang link tags',
     'version' => '1.0.0',
     'category' => 'fe',
@@ -11,7 +11,7 @@ $EM_CONF['languagemod'] = [
         'conflicts' => [],
         'suggests' => [],
     ],
-    'state' => 'alpha',
+    'state' => 'beta',
     'uploadfolder' => false,
     'createDirs' => '',
     'clearCacheOnLoad' => true,
@@ -20,7 +20,7 @@ $EM_CONF['languagemod'] = [
     'author_company' => 'Bitmotion GmbH',
     'autoload' => [
         'psr-4' => [
-            'Bitmotion\\Languagemod\\' => 'Classes/'
+            'Bitmotion\\Languagemod\\' => 'Classes/',
         ],
     ],
 ];
