@@ -43,23 +43,18 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
     protected $translationChecked = false;
 
+    protected $configurationManager;
+
+    protected $initialized = false;
+
     public function __construct()
     {
-        $configurationManager = GeneralUtility::makeInstance(FrontendConfigurationManager::class);
-        $setup = $configurationManager->getTypoScriptSetup();
-
-        if (!empty($setup) && isset($setup['config.']['tx_languagemod.']) && !empty($setup['config.']['tx_languagemod.'])) {
-            $config = $setup['config.']['tx_languagemod.'];
-            $this->setLanguages($config);
-            $this->setPages($config);
-            $this->setParameters($config);
-            $this->setQueryParameters();
-            $this->canHandle = true;
-        }
+        $this->configurationManager = GeneralUtility::makeInstance(FrontendConfigurationManager::class);
     }
 
     public function getPageOverlay_preProcess(&$pageInput, &$lUid, PageRepository $parent)
     {
+        $this->initialize();
         if ($this->canHandle === true) {
             // Get current language uid from language aspect
             $languageId = GeneralUtility::makeInstance(Context::class)->getAspect('language')->getId();
@@ -78,6 +73,26 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
             ) {
                 $lUid = 0;
             }
+        }
+    }
+
+    protected function initialize()
+    {
+        if (!$this->initialized) {
+            $setup = $this->configurationManager->getTypoScriptSetup();
+            if (!empty($setup)) {
+                $this->initialized = true;
+
+                if (!empty($setup['config.']['tx_languagemod.'])) {
+                    $config = $setup['config.']['tx_languagemod.'];
+                    $this->setLanguages($config);
+                    $this->setPages($config);
+                    $this->setParameters($config);
+                    $this->setQueryParameters();
+                    $this->canHandle = true;
+                }
+            }
+
         }
     }
 
