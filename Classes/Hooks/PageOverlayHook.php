@@ -92,7 +92,6 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
                     $this->canHandle = true;
                 }
             }
-
         }
     }
 
