@@ -1,8 +1,9 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 namespace Bitmotion\Languagemod\Hooks;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Context\UserAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
@@ -76,6 +77,10 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         }
     }
 
+    /**
+     * @param array $config
+     * @return array
+     */
     protected function getLanguages(array $config): array
     {
         $this->languages = GeneralUtility::trimExplode(',', $config['languages']);
@@ -83,6 +88,10 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $this->languages;
     }
 
+    /**
+     * @param array $config
+     * @return array
+     */
     protected function getPages(array $config): array
     {
         $this->pages = GeneralUtility::trimExplode(',', $config['pages']);
@@ -90,6 +99,10 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $this->pages;
     }
 
+    /**
+     * @param array $config
+     * @return array
+     */
     protected function getParameters(array $config): array
     {
         $parameters = [];
@@ -107,6 +120,9 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $parameters;
     }
 
+    /**
+     * @return array
+     */
     protected function getQueryParams(): array
     {
         if ($GLOBALS['TYPO3_REQUEST'] !== null) {
@@ -119,6 +135,11 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $this->queryParams;
     }
 
+    /**
+     * @param array $queryParameters
+     * @param array $parameters
+     * @return bool
+     */
     protected function requestHasParam(array $queryParameters, array $parameters): bool
     {
         foreach ($parameters as $key => $parameter) {
@@ -149,6 +170,10 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return false;
     }
 
+    /**
+     * @param int $languageUid
+     * @return bool
+     */
     protected function translationExist(int $languageUid): bool
     {
         if (!$this->isTranslatedRecord($languageUid)) {
@@ -158,6 +183,9 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         $transOrigPointerField = $GLOBALS['TCA'][$this->tableName]['ctrl']['transOrigPointerField'];
         $languageField = $GLOBALS['TCA'][$this->tableName]['ctrl']['languageField'];
 
+        /**
+         * @var QueryBuilder $queryBuilder
+         */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
         $queryBuilder->select('*')->from($this->tableName)->setMaxResults(1);
         $queryBuilder->where($queryBuilder->expr()->eq($languageField, $queryBuilder->createNamedParameter($languageUid, \PDO::PARAM_INT)));
@@ -176,15 +204,22 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
                 break;
             default:
                 // WHERE sys_language_uid = 1 AND l10n_source = 1000
-                $queryBuilder->andWhere($queryBuilder->expr()->eq($transOrigPointerField, $queryBuilder->createNamedParameter($this->value, \PDO::PARAM_INT)));
+                $queryBuilder
+                    ->andWhere($queryBuilder->expr()->eq($transOrigPointerField, $queryBuilder->createNamedParameter($this->value, \PDO::PARAM_INT)));
         }
 
         return !empty($queryBuilder->execute()->fetchAll());
     }
 
+    /**
+     * @param QueryBuilder $queryBuilder
+     */
     protected function applyAdminPanelConfiguration(QueryBuilder &$queryBuilder)
     {
         try {
+            /**
+             * @var UserAspect $userAspect
+             */
             $userAspect = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Context\\Context')->getAspect('backend.user');
         } catch (\Exception $exception) {
             return;
@@ -207,8 +242,17 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         }
     }
 
+    /**
+     * @param string $pointerField
+     * @param string $languageField
+     * @param int $languageUid
+     * @return int
+     */
     protected function getTranslationPointer(string $pointerField, string $languageField, int $languageUid): int
     {
+        /**
+         * @var QueryBuilder $queryBuilder
+         */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
 
         if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 9000000) {
@@ -225,10 +269,19 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
             ->fetchColumn(0);
     }
 
+    /**
+     * @param int $languageUid
+     * @return bool
+     */
     protected function isTranslatedRecord(int $languageUid): bool
     {
         $record = BackendUtility::getRecord($this->tableName, $this->value);
         $this->translationChecked = true;
+
+        // Skip check for records in all languages
+        if (isset($record['sys_language_uid']) && $record['sys_language_uid'] === -1) {
+            return false;
+        }
 
         if ($record !== null && is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['pageOverlayRecordIsTranslated'])) {
             foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['pageOverlayRecordIsTranslated'] as $classRef) {
