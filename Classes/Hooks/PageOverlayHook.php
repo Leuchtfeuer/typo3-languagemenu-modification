@@ -3,95 +3,84 @@ declare(strict_types = 1);
 namespace Bitmotion\Languagemod\Hooks;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Context\UserAspect;
+use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Context\Exception\AspectNotFoundException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 use TYPO3\CMS\Frontend\Page\PageRepositoryGetPageOverlayHookInterface;
 
 class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, SingletonInterface
 {
-    protected $setup = [];
+    protected $languages;
 
-    protected $initialized = false;
+    protected $pages;
 
-    protected $configurationManager;
+    protected $parameters;
+
+    protected $queryParameters;
+
+    protected $canHandle;
 
     protected $value;
 
     protected $tableName;
 
-    protected $params;
-
-    protected $queryParams;
-
-    protected $languages;
-
-    protected $pages;
-
     protected $translationChecked = false;
+
+    public function __construct()
+    {
+        $configurationManager = GeneralUtility::makeInstance(FrontendConfigurationManager::class);
+        $setup = $configurationManager->getTypoScriptSetup();
+
+        if (!empty($setup) && isset($setup['config.']['tx_languagemod.']) && !empty($setup['config.']['tx_languagemod.'])) {
+            $config = $setup['config.']['tx_languagemod.'];
+            $this->setLanguages($config);
+            $this->setPages($config);
+            $this->setParameters($config);
+            $this->setQueryParameters();
+            $this->canHandle = true;
+        }
+    }
 
     public function getPageOverlay_preProcess(&$pageInput, &$lUid, PageRepository $parent)
     {
-        $this->initialize();
-
-        if (!empty($this->setup) && isset($this->setup['config.']['tx_languagemod.']) && !empty($this->setup['config.']['tx_languagemod.'])) {
-            $config = $this->setup['config.']['tx_languagemod.'];
-            $languages = $this->languages ?? $this->getLanguages($config);
+        if ($this->canHandle === true) {
+            // Get current language uid from language aspect
+            $languageId = GeneralUtility::makeInstance(Context::class)->getAspect('language')->getId();
 
             // Skip when we are in current language and we already checked whether given record is a translation
-            if ($lUid === $GLOBALS['TSFE']->sys_language_uid && $this->translationChecked === true) {
+            if ($lUid === $languageId && $this->translationChecked === true) {
                 return;
             }
 
-            if (in_array($lUid, $languages)) {
-                $pages = $this->pages ?? $this->getPages($config);
-
-                if (empty($pages) || in_array($GLOBALS['TSFE']->id, $pages)) {
-                    $queryParams = $this->queryParams ?? $this->getQueryParams();
-                    $params = $this->params ?? $this->getParameters($config);
-
-                    if ($this->requestHasParam($queryParams, $params) && !$this->translationExist($lUid)) {
-                        $lUid = 0;
-                    }
-                }
+            // Do not overlay page as record is not translated
+            if (
+                in_array($lUid, $this->languages)
+                && (empty($this->pages) || in_array($GLOBALS['TSFE']->id, $this->pages))
+                && $this->requestHasParameter()
+                && !$this->translationExist($lUid)
+            ) {
+                $lUid = 0;
             }
         }
     }
 
-    protected function initialize()
+    protected function setLanguages(array $config): void
     {
-        if ($this->initialized === false) {
-            $configurationManager = $this->configurationManager ?? GeneralUtility::makeInstance(FrontendConfigurationManager::class);
-            $setup = $configurationManager->getTypoScriptSetup();
-
-            if (!empty($setup)) {
-                $this->setup = $setup;
-                $this->initialized = true;
-            }
-        }
+        $this->languages = GeneralUtility::trimExplode(',', $config['languages'], true);
     }
 
-    protected function getLanguages(array $config): array
+    protected function setPages(array $config): void
     {
-        $this->languages = GeneralUtility::trimExplode(',', $config['languages']);
-
-        return $this->languages;
+        $this->pages = GeneralUtility::trimExplode(',', $config['pages'], true);
     }
 
-    protected function getPages(array $config): array
-    {
-        $this->pages = GeneralUtility::trimExplode(',', $config['pages']);
-
-        return $this->pages;
-    }
-
-    protected function getParameters(array $config): array
+    protected function setParameters(array $config): void
     {
         $parameters = [];
 
@@ -103,30 +92,21 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
             ];
         }
 
-        $this->params = $parameters;
-
-        return $parameters;
+        $this->parameters = $parameters;
     }
 
-    protected function getQueryParams(): array
+    protected function setQueryParameters(): void
     {
-        if ($GLOBALS['TYPO3_REQUEST'] !== null) {
-            $this->queryParams = $GLOBALS['TYPO3_REQUEST']->getQueryParams();
-        } else {
-            // TYPO3 8
-            $this->queryParams = GeneralUtility::_GET();
-        }
-
-        return $this->queryParams;
+        $this->queryParameters = $GLOBALS['TYPO3_REQUEST']->getQueryParams();
     }
 
-    protected function requestHasParam(array $queryParameters, array $parameters): bool
+    protected function requestHasParameter(): bool
     {
-        foreach ($parameters as $key => $parameter) {
+        foreach ($this->parameters as $key => $parameter) {
             if (isset($parameter['getVars']) && !empty($parameter['getVars'])) {
                 $getVars = $parameter['getVars'];
                 $value = 0;
-                $paramsToIterate = $queryParameters;
+                $paramsToIterate = $this->queryParameters;
 
                 foreach ($getVars as $getVar) {
                     if (!isset($paramsToIterate[$getVar])) {
@@ -159,16 +139,10 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         $transOrigPointerField = $GLOBALS['TCA'][$this->tableName]['ctrl']['transOrigPointerField'];
         $languageField = $GLOBALS['TCA'][$this->tableName]['ctrl']['languageField'];
 
-        /**
-         * @var QueryBuilder
-         */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
         $queryBuilder->select('*')->from($this->tableName)->setMaxResults(1);
         $queryBuilder->where($queryBuilder->expr()->eq($languageField, $queryBuilder->createNamedParameter($languageUid, \PDO::PARAM_INT)));
-
-        if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 9000000) {
-            $this->applyAdminPanelConfiguration($queryBuilder);
-        }
+        $this->applyAdminPanelConfiguration($queryBuilder);
 
         switch ($languageUid) {
             case 0:
@@ -184,21 +158,18 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
                     ->andWhere($queryBuilder->expr()->eq($transOrigPointerField, $queryBuilder->createNamedParameter($this->value, \PDO::PARAM_INT)));
         }
 
-        return !empty($queryBuilder->execute()->fetchAll());
+        return $queryBuilder->execute()->rowCount() !== 0;
     }
 
     protected function applyAdminPanelConfiguration(QueryBuilder &$queryBuilder)
     {
         try {
-            /**
-             * @var UserAspect
-             */
-            $userAspect = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Context\\Context')->getAspect('backend.user');
-        } catch (\Exception $exception) {
+            $backendUserAspect = GeneralUtility::makeInstance(Context::class)->getAspect('backend.user');
+        } catch (AspectNotFoundException $exception) {
             return;
         }
 
-        if ($userAspect->isLoggedIn()) {
+        if ($backendUserAspect->isLoggedIn()) {
             $user = $GLOBALS['BE_USER'];
 
             if (isset($user->uc['AdminPanel']) && !empty($user->uc['AdminPanel']) && (bool)$user->uc['AdminPanel']['display_top'] === true) {
@@ -217,14 +188,8 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
     protected function getTranslationPointer(string $pointerField, string $languageField, int $languageUid): int
     {
-        /**
-         * @var QueryBuilder
-         */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
-
-        if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 9000000) {
-            $this->applyAdminPanelConfiguration($queryBuilder);
-        }
+        $this->applyAdminPanelConfiguration($queryBuilder);
 
         return (int)$queryBuilder
             ->select($pointerField)
