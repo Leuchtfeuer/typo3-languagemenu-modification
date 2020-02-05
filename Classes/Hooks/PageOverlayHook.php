@@ -138,28 +138,25 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
     protected function requestHasParameter(): bool
     {
         foreach ($this->parameters as $key => $parameter) {
-            if (isset($parameter['getVars']) && !empty($parameter['getVars'])) {
-                $getVars = $parameter['getVars'];
-                $value = 0;
-                $paramsToIterate = $this->queryParameters;
+            $value = 0;
+            $paramsToIterate = $this->queryParameters;
 
-                foreach ($getVars as $getVar) {
-                    if (!isset($paramsToIterate[$getVar])) {
-                        continue 2;
-                    }
-
-                    if (is_array($paramsToIterate[$getVar])) {
-                        $paramsToIterate = $paramsToIterate[$getVar];
-                    } else {
-                        $value = (int)$paramsToIterate[$getVar];
-                    }
+            foreach ($parameter['getVars'] ?? [] as $getVar) {
+                if (!isset($paramsToIterate[$getVar])) {
+                    continue 2;
                 }
 
-                $this->value = $value;
-                $this->tableName = $parameter['tableName'];
-
-                return true;
+                if (is_array($paramsToIterate[$getVar])) {
+                    $paramsToIterate = $paramsToIterate[$getVar];
+                } else {
+                    $value = (int)$paramsToIterate[$getVar];
+                }
             }
+
+            $this->value = $value;
+            $this->tableName = $parameter['tableName'];
+
+            return true;
         }
 
         return false;
