@@ -107,12 +107,12 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
     protected function setLanguages(array $config): void
     {
-        $this->languages = GeneralUtility::trimExplode(',', $config['languages'], true);
+        $this->languages = GeneralUtility::intExplode(',', $config['languages'], true);
     }
 
     protected function setPages(array $config): void
     {
-        $this->pages = GeneralUtility::trimExplode(',', $config['pages'], true);
+        $this->pages = GeneralUtility::intExplode(',', $config['pages'], true);
     }
 
     protected function setParameters(array $config): void
