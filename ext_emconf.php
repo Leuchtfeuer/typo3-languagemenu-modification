@@ -1,4 +1,5 @@
 <?php
+
 $EM_CONF['languagemod'] = [
     'title' => 'Language Modification',
     'description' => 'Modifies language menu entries and hreflang link tags',

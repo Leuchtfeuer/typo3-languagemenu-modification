@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 namespace Bitmotion\Languagemod\Hooks;
 
 /***
@@ -27,23 +27,32 @@ use TYPO3\CMS\Frontend\Page\PageRepositoryGetPageOverlayHookInterface;
 
 class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, SingletonInterface
 {
-    protected $languages;
+    /**
+     * @var int[]
+     */
+    protected $languages = [];
 
-    protected $pages;
+    /**
+     * @var int[]
+     */
+    protected $pages = [];
 
-    protected $parameters;
+    /**
+     * @var FrontendConfigurationManager
+     */
+    protected $configurationManager;
 
-    protected $queryParameters;
+    protected $parameters = [];
 
-    protected $canHandle;
+    protected $queryParameters = [];
 
-    protected $value;
+    protected $canHandle = false;
 
-    protected $tableName;
+    protected $value = 0;
+
+    protected $tableName = '';
 
     protected $translationChecked = false;
-
-    protected $configurationManager;
 
     protected $initialized = false;
 
@@ -55,6 +64,7 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
     public function getPageOverlay_preProcess(&$pageInput, &$lUid, PageRepository $parent)
     {
         $this->initialize();
+
         if ($this->canHandle === true) {
             // Get current language uid from language aspect
             $languageId = GeneralUtility::makeInstance(Context::class)->getAspect('language')->getId();
@@ -76,7 +86,7 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         }
     }
 
-    protected function initialize()
+    protected function initialize(): void
     {
         if (!$this->initialized) {
             $setup = $this->configurationManager->getTypoScriptSetup();
@@ -186,7 +196,7 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
         return $queryBuilder->execute()->rowCount() !== 0;
     }
 
-    protected function applyAdminPanelConfiguration(QueryBuilder &$queryBuilder)
+    protected function applyAdminPanelConfiguration(QueryBuilder &$queryBuilder): void
     {
         try {
             $backendUserAspect = GeneralUtility::makeInstance(Context::class)->getAspect('backend.user');
