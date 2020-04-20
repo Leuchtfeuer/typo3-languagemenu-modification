@@ -132,7 +132,9 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
     protected function setQueryParameters(): void
     {
-        $this->queryParameters = $GLOBALS['TYPO3_REQUEST']->getQueryParams();
+        if (!empty($GLOBALS['TYPO3_REQUEST'])) {
+            $this->queryParameters = $GLOBALS['TYPO3_REQUEST']->getQueryParams();
+        }
     }
 
     protected function requestHasParameter(): bool
