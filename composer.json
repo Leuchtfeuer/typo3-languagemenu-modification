@@ -1,5 +1,5 @@
 {
-  "name": "bitmotion/languagemod",
+  "name": "leuchtfeuer/languagemod",
   "description": "Disables languages in HMENU when there is no translated record for given detail page.",
   "keywords": [
     "TYPO3",
@@ -8,26 +8,26 @@
   ],
   "type": "typo3-cms-extension",
   "license": "GPL-2.0-or-later",
-  "homepage": "https://www.bitmotion.de",
+  "homepage": "https://www.Leuchtfeuer.com",
   "authors": [
     {
       "name": "Florian Wessels",
-      "email": "typo3-ext@bitmotion.de",
+      "email": "f.wessels@Leuchtfeuer.com",
       "role": "Developer",
-      "homepage": "https://www.bitmotion.de"
+      "homepage": "https://www.Leuchtfeuer.com"
     }
   ],
   "support": {
-    "issues": "https://github.com/bitmotion/typo3-languagemenu-modification/issues",
-    "source": "https://github.com/bitmotion/typo3-languagemenu-modification",
-    "email": "typo3-ext@bitmotion.de",
-    "docs": "https://docs.typo3.org/p/bitmotion/languagemod/master/en-us/"
+    "issues": "https://github.com/Leuchtfeuer/typo3-languagemenu-modification/issues",
+    "source": "https://github.com/Leuchtfeuer/typo3-languagemenu-modification",
+    "email": "dev@Leuchtfeuer.com",
+    "docs": "https://docs.typo3.org/p/leuchtfeuer/languagemod/master/en-us/"
   },
   "require": {
-    "typo3/cms-core": "^9.5",
-    "typo3/cms-backend": "^9.5",
-    "typo3/cms-extbase": "^9.5",
-    "typo3/cms-frontend": "^9.5"
+    "typo3/cms-core": "^9.5.17",
+    "typo3/cms-backend": "^9.5.17",
+    "typo3/cms-extbase": "^9.5.17",
+    "typo3/cms-frontend": "^9.5.17"
   },
   "autoload": {
     "psr-4": {
