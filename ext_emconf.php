@@ -3,7 +3,7 @@
 $EM_CONF['languagemod'] = [
     'title' => 'Language Modification',
     'description' => 'Modifies language menu entries and hreflang link tags',
-    'version' => '1.0.1',
+    'version' => '1.1.0-dev',
     'category' => 'fe',
     'constraints' => [
         'depends' => [
