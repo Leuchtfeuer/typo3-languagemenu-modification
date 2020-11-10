@@ -245,7 +245,7 @@ class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, Sing
 
         if ($record !== null && is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['pageOverlayRecordIsTranslated'])) {
             foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['pageOverlayRecordIsTranslated'] as $classRef) {
-                $hookObject = GeneralUtility::getUserObj($classRef);
+                $hookObject = GeneralUtility::makeInstance($classRef);
 
                 if (!$hookObject instanceof PageOverlayRecordIsTranslatedInterface) {
                     throw new \UnexpectedValueException($classRef . ' must implement interface ' . PageOverlayRecordIsTranslatedInterface::class, 1558689867);
