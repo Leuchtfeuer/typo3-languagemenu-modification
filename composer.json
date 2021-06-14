@@ -31,7 +31,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Bitmotion\\Languagemod\\": "Classes/"
+      "Leuchtfeuer\\Languagemod\\": "Classes/"
     }
   },
   "replace": {
