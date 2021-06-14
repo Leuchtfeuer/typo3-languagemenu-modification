@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 /*
  * This file is part of the "Language Modification" extension for TYPO3 CMS.
+ *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
+ *
  * Florian Wessels <f.wessels@Leuchtfeuer.com>, Leuchtfeuer Digital Marketing
  */
 
-namespace Bitmotion\Languagemod\Hooks;
+namespace Leuchtfeuer\Languagemod\Hooks;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Context\Context;
@@ -18,10 +20,10 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
+use TYPO3\CMS\Core\Domain\Repository\PageRepositoryGetPageOverlayHookInterface;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager;
-use TYPO3\CMS\Frontend\Page\PageRepositoryGetPageOverlayHookInterface;
 
 class PageOverlayHook implements PageRepositoryGetPageOverlayHookInterface, SingletonInterface
 {

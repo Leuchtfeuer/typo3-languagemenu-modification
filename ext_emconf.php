@@ -21,7 +21,7 @@ $EM_CONF['languagemod'] = [
     'author_company' => 'Leuchtfeuer Digital Marketing',
     'autoload' => [
         'psr-4' => [
-            'Bitmotion\\Languagemod\\' => 'Classes/',
+            'Leuchtfeuer\\Languagemod\\' => 'Classes/',
         ],
     ],
 ];

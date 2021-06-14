@@ -11,7 +11,7 @@ declare(strict_types=1);
  * Florian Wessels <f.wessels@Leuchtfeuer.com>, Leuchtfeuer Digital Marketing
  */
 
-namespace Bitmotion\Languagemod\Hooks;
+namespace Leuchtfeuer\Languagemod\Hooks;
 
 interface PageOverlayRecordIsTranslatedInterface
 {
